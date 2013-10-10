@@ -83,7 +83,7 @@ public class RMIService {
           }
           method = realObj.getClass().getMethod(methodName, types);
         } else {  // Argument is null
-          method = realObj.getClass().getMethod(methodName, null);
+          method = realObj.getClass().getMethod(methodName, (Class[])null);
         }
         Object returnVal = method.invoke(realObj, args);
 

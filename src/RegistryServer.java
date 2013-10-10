@@ -36,7 +36,7 @@ public class RegistryServer {
   }
   
   public static void showUsage() {
-    System.out.println("Usage: RegistryServer [PortNumber]");
+    System.out.println("Usage: RegistryServer [<PortNumber>]");
     System.out.println("\tDefault PortNumber is 1099.");
   }
   
