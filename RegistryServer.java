@@ -6,96 +6,112 @@ import java.net.Socket;
 import java.util.HashMap;
 
 public class RegistryServer {
-
-  public RegistryServer() {
-    map = new HashMap<String, RemoteObjectReference>();
-  }
-
-  private static final int port = 12345;
+  private int port;
   private HashMap<String, RemoteObjectReference> map;
-
-  public static void main(String[] args) {
-
-    RegistryServer server = new RegistryServer();
-    server.serve();
-
+  
+  public RegistryServer() {
+    this.port = 1099;
+    this.map = new HashMap<String, RemoteObjectReference>();
+  }
+  
+  public RegistryServer(int port) {
+    this.port = port;
+    this.map = new HashMap<String, RemoteObjectReference>();
   }
 
-  public void serve() {
+  public void serve() throws RemoteException440 {
     ServerSocket serverSock = null;
     try {
-      System.out.println(InetAddress.getLocalHost().getHostAddress());
-      serverSock = new ServerSocket(port);
+      System.out.println("Registry Server started on " + InetAddress.getLocalHost().getHostAddress() + ":" + this.port);
+      serverSock = new ServerSocket(this.port);
       while (true) {
-
         Socket socket = serverSock.accept();
-        System.out.println("Get msg");
-        MsgHandler handler = new MsgHandler(socket);
-        Thread t = new Thread(handler);
-        t.start();
-
+        System.out.println("New message received:");
+        Thread thread = new Thread(new MsgHandler(socket));
+        thread.start();
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      throw new RemoteException440();
+    }
+  }
+  
+  public static void showUsage() {
+    System.out.println("Usage: RegistryServer [PortNumber]");
+    System.out.println("\tDefault PortNumber is 1099.");
+  }
+  
+  public static void main(String[] args) {
+    RegistryServer server = null;
+    if (args.length == 0) {
+      server = new RegistryServer();
+    } else if (args.length == 1) {
+      int inputNum = 0;
+      try {
+        inputNum = Integer.parseInt(args[0]);
+      } catch (Exception e) {
+        RegistryServer.showUsage();
+        return;
+      }
+      server = new RegistryServer(inputNum);
+    } else {
+      RegistryServer.showUsage();
+      return;
+    }
+    try {
+      server.serve();
+    } catch (RemoteException440 e) {
+      System.out.println("Registry Sever failed to start.");
     }
   }
 
   public class MsgHandler implements Runnable {
-
     Socket socket;
-
+    
     public MsgHandler(Socket socket) {
       this.socket = socket;
     }
 
-    public void processMessage(Socket socket) {
-
-      ObjectInputStream is;
+    public void processRequest() {
       try {
-        is = new ObjectInputStream(socket.getInputStream());
-
-        Message msg = (Message) is.readObject();
-
+        ObjectInputStream is = new ObjectInputStream(this.socket.getInputStream());
+        Message msg = (Message)is.readObject();
         MessageType type = msg.getType();
         Message response = null;
         if (type == MessageType.MsgRegistryBindRequest) {
-          System.out.println("BIND");
-          RemoteObjectReference ror = (RemoteObjectReference) msg.getObj();
-          String servicename = (String) msg.getArg();
-          System.out.println("serviceName=" + servicename);
-          map.put(servicename, ror);
-          response = new Message(MessageType.MsgRegistryBindResponse, "OK",
-              null);
-        }
-        if (type == MessageType.MsgRegistryLookupRequest) {
-          System.out.println("LOOKUP");
-          String service = (String) msg.getObj();
+          System.out.println("Bind request received...");
+          RemoteObjectReference ror = (RemoteObjectReference)msg.getObj();
+          String serviceName = (String)msg.getArg();
+          System.out.println("Service Name is " + serviceName);
+          if(RegistryServer.this.map.containsKey(serviceName)) {
+            response = new Message(MessageType.MsgRegistryBindResponse, null, "ERROR");
+          } else {
+            RegistryServer.this.map.put(serviceName, ror);
+            response = new Message(MessageType.MsgRegistryBindResponse, null, "OK");
+          }
+        } else if (type == MessageType.MsgRegistryLookupRequest) {
+          System.out.println("Lookup request received...");
+          String service = (String)msg.getArg();
           RemoteObjectReference ror = map.get(service);
           if (ror == null) {
-            response = new Message(MessageType.MsgRegistryLookupResponse,
-                "ERROR", null);
+            response = new Message(MessageType.MsgRegistryLookupResponse, null, "ERROR");
           } else {
-            response = new Message(MessageType.MsgRegistryLookupResponse, "OK",
-                ror);
+            response = new Message(MessageType.MsgRegistryLookupResponse, ror, "OK");
           }
         }
-        ObjectOutputStream out = new ObjectOutputStream(
-            socket.getOutputStream());
+        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(response);
         out.flush();
         out.close();
         socket.close();
-
+        System.out.println("Request processed.");
       } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        System.out.println("Process request failed.");
       }
     }
 
-    @Override
+    //@Override
     public void run() {
-      processMessage(socket);
+      this.processRequest();
     }
   }
-
 }

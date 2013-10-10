@@ -1,7 +1,10 @@
-public interface RemoteStub440 extends Remote440 {
-  public void setROR(RemoteObjectReference o);
-
-  public RemoteObjectReference getROR();
-
-  public Object callMethod(Message m);
+public class RemoteStub440 implements Remote440 {
+  protected RemoteObjectReference ror;
+  
+  public RemoteObjectReference getROR() {
+    return this.ror;
+  }
+  public void setROR(RemoteObjectReference ror) {
+    this.ror = ror;
+  }
 }

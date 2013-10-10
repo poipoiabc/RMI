@@ -1,10 +1,8 @@
 public enum MessageType {
-  
-  MsgMethodInvokeRequest,
-  MsgMethodInvokeResponse,
-  MsgRegistryLookupRequest,
   MsgRegistryBindRequest,
   MsgRegistryBindResponse,
+  MsgRegistryLookupRequest,
   MsgRegistryLookupResponse,
-  
+  MsgMethodInvokeRequest,
+  MsgMethodInvokeResponse
 }

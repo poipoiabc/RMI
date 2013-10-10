@@ -1,53 +1,42 @@
 import java.io.Serializable;
 
-@SuppressWarnings("serial")
+//@SuppressWarnings("serial")
 public class RemoteObjectReference implements Serializable {
-
-  private String ipAddr;
+  private static final long serialVersionUID = 1L;
+  private String ip;
   private int port;
-  private String serviceName;
+  private String className;
 
-  public RemoteObjectReference(String ip, int port, String serviceName) {
-    this.ipAddr = ip;
+  public RemoteObjectReference(String ip, int port, String className) {
+    this.ip = ip;
     this.port = port;
-    this.serviceName = serviceName;
+    this.className = className;
+  }
+  
+  public String getIP() {
+    return this.ip;
   }
 
-  public RemoteObjectReference(String ip, int port) {
-    this.ipAddr = ip;
-    this.port = port;
+  public int getPort() {
+    return this.port;
   }
 
-  public void setServiceName(String name) {
-    this.serviceName = name;
+  public String getClassName() {
+    return this.className;
   }
 
   public Object localize() {
-
     RemoteStub440 stub = null;
     // Determines if class exists
     try {
-      String stubName = serviceName + "Stub";
-      @SuppressWarnings("rawtypes")
+      String stubName = this.className + "Stub";
+      //@SuppressWarnings("rawtypes")
       Class c = Class.forName(stubName);
-      stub = (RemoteStub440) c.newInstance();
+      stub = (RemoteStub440)c.newInstance();
       stub.setROR(this);
     } catch (Exception e) {
       e.printStackTrace();
     }
-
     return stub;
-  }
-
-  public String getIP() {
-    return this.ipAddr;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public String getServiceName() {
-    return serviceName;
   }
 }
