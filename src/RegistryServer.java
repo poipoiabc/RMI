@@ -3,20 +3,20 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RegistryServer {
   private int port;
-  private HashMap<String, RemoteObjectReference> map;
+  private ConcurrentHashMap<String, RemoteObjectReference> map;
   
   public RegistryServer() {
     this.port = 1099;
-    this.map = new HashMap<String, RemoteObjectReference>();
+    this.map = new ConcurrentHashMap<String, RemoteObjectReference>();
   }
   
   public RegistryServer(int port) {
     this.port = port;
-    this.map = new HashMap<String, RemoteObjectReference>();
+    this.map = new ConcurrentHashMap<String, RemoteObjectReference>();
   }
 
   public void serve() throws RemoteException440 {
